@@ -1,5 +1,7 @@
 # Pianotrans Run Tools
 
+[English README](README_EN.md)
+
 這個目錄包含 Pianotrans 轉錄入口，以及圍繞轉錄結果新增的 BPM 修正、MIDI 統計、保守規則清理工具。所有 `.command` 檔都可以直接雙擊執行。
 
 ## Main Pipeline
