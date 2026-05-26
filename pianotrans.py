@@ -1,7 +1,7 @@
 import os
 import sys
 import tkinter as tk
-from tkinter import filedialog, messagebox
+from tkinter import filedialog
 
 import torch
 
@@ -94,51 +94,31 @@ def transcribe_file(audio_path, transcriptor):
     return True
 
 
-def collect_audio_files(path):
-    if os.path.isfile(path):
-        return [path]
-
-    audio_files = []
-    for name in sorted(os.listdir(path)):
-        candidate = os.path.join(path, name)
-        if os.path.isfile(candidate) and midi_path_for(candidate):
-            audio_files.append(candidate)
-    return audio_files
-
-
-def choose_path():
+def choose_audio_files():
     root = tk.Tk()
     root.withdraw()
 
-    choice = messagebox.askyesnocancel(
-        'Pianotrans',
-        'Choose Yes for a single audio file, No for a folder batch.'
+    return filedialog.askopenfilenames(
+        title='Choose audio file(s) to transcribe',
+        filetypes=[
+            ('Audio files', '*.flac *.mp3 *.wav *.ape *.m4a *.aif *.aiff'),
+            ('All files', '*.*'),
+        ],
     )
-
-    if choice is None:
-        return None
-    if choice:
-        return filedialog.askopenfilename(
-            filetypes=[
-                ('Audio files', '*.flac *.mp3 *.wav *.ape *.m4a *.aif *.aiff'),
-                ('All files', '*.*'),
-            ]
-        )
-    return filedialog.askdirectory()
 
 
 def main():
     print('--------------------------------------------------------------------------------')
     print('Pianotrans transcription script based on GiantMIDI-Piano')
-    print('Choose a single audio file or a folder. MIDI files are written next to audio files.')
+    print('Choose one or more audio files. MIDI files are written next to audio files.')
     print('--------------------------------------------------------------------------------')
 
-    path = choose_path()
-    if not path:
+    selected_paths = choose_audio_files()
+    if not selected_paths:
         print('No input selected.')
         return 1
 
-    audio_files = collect_audio_files(path)
+    audio_files = [path for path in selected_paths if midi_path_for(path)]
     if not audio_files:
         print('No supported audio files found.')
         return 1
