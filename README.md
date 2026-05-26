@@ -2,7 +2,7 @@
 
 [English README](README_EN.md)
 
-這個目錄包含 Pianotrans 轉錄入口，以及圍繞轉錄結果新增的 BPM 修正、MIDI 統計、保守規則清理工具。所有 `.command` 檔都可以直接雙擊執行。
+這個目錄包含 Pianotrans 轉錄入口，以及圍繞轉錄結果新增的 BPM 修正、MIDI 統計、保守規則清理、初步分手 / MIDI channel 標記、MIDI review 匯出工具。所有 `.command` 檔都可以直接雙擊執行。
 
 ## Main Pipeline
 
@@ -19,6 +19,7 @@ Pianotrans inference
 -> detect BPM from source audio
 -> write BPM-fixed MIDI
 -> rule-based conservative cleanup
+-> provisional hand split by MIDI channel
 ```
 
 輸出檔案：
@@ -30,7 +31,7 @@ song_bpmfix.mid
 song_bpmfix_cleaned.mid
 ```
 
-`song_stats.txt` 會包含原始 MIDI 品質統計，以及 BPM-fixed MIDI 清理後追加的 cleaning stats。
+`song_stats.txt` 會包含原始 MIDI 品質統計、BPMFix stats、cleaning stats，以及 hand-split stats。
 
 如果 `song.mid` 已存在，流程不會重新轉錄；只會補缺失的 stats、BPM-fixed MIDI、cleaned MIDI。
 
@@ -120,6 +121,28 @@ Rule removals:
 
 所有百分比都以 `Original notes` 為分母。
 
+### `hand_split_channels.command`
+
+只做初步左右手分配，直接在清理後 MIDI 上修改 note channel。
+
+它不拆成多個 instrument track，也不刪除 note。
+
+channel 對應：
+
+```text
+MIDI channel 1 = right hand
+MIDI channel 3 = left hand
+```
+
+對 `mido` 這類 0-based channel 的 library 來說：
+
+```text
+channel 0 = MIDI channel 1
+channel 2 = MIDI channel 3
+```
+
+這一步主要是為了讓 Logic Pro 樂譜視圖可以直接用 Piano 1 / Piano 3 顯示左右手，方便人工檢查和編輯。
+
 ### `generate_midi_review.py`
 
 只讀取已完成後處理的 MIDI，輸出英文 Markdown 格式的 score facts table。它不修改 MIDI。
@@ -158,6 +181,7 @@ pianotrans.py
 bpmfix.py
 midi_stats_command.py
 clean_midi_rules.py
+hand_split_channels.py
 generate_midi_review.py
 ```
 
