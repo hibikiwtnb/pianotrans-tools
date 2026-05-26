@@ -201,6 +201,6 @@ PIANOTRANS_BPM_PYTHON
 
 ## Notes
 
-- `pianotrans.py` 會優先使用 Apple GPU / MPS；不可用時回退 CPU。
+- `pianotrans.py` 會優先使用 Apple GPU / MPS；不可用時依序嘗試 CUDA、CPU。
 - BPM 修正以固定 BPM 為前提，不建立 tempo map。
 - 規則清理是低風險 preprocessing；後續更複雜的判斷應放在 feature extraction 或 ML classifier 等更高階流程中。
