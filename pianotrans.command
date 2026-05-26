@@ -30,6 +30,6 @@ EOF
   exit 1
 fi
 
-"$PYTHON_BIN" transCPU.py
+"$PYTHON_BIN" pianotrans.py
 
 read -r -p "Press Return to close..."

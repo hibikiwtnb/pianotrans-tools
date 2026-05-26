@@ -4,7 +4,7 @@
 
 ## Main Pipeline
 
-### `transCPU.command`
+### `pianotrans.command`
 
 完整轉錄流程入口。雙擊後選擇單個音訊檔或資料夾批量處理。
 
@@ -87,7 +87,7 @@ Max polyphony
 2. 輸出 `*_cleaned.mid`。
 3. 輸出 `*_clean_report.txt`。
 
-注意：獨立執行 `clean_midi_rules.command` 時會輸出 `*_clean_report.txt`；完整 `transCPU.command` pipeline 中，清理報告會追加寫入原本的 `song_stats.txt`。
+注意：獨立執行 `clean_midi_rules.command` 時會輸出 `*_clean_report.txt`；`pianotrans.command` pipeline 中，清理報告會追加寫入原本的 `song_stats.txt`。
 
 清理規則只刪除高度疑似 artifact 的 note，不做音樂語義判斷、不分手、不量化、不判斷和弦/調性/旋律。
 
@@ -155,7 +155,7 @@ MIDI_REVIEW_SPEC.md
 這些 `.command` 背後呼叫的 Python 腳本：
 
 ```text
-transCPU.py
+pianotrans.py
 bpmfix.py
 midi_stats_command.py
 clean_midi_rules.py
@@ -204,6 +204,6 @@ PIANOTRANS_BPM_PYTHON
 
 ## Notes
 
-- `transCPU.py` 會優先使用 Apple GPU / MPS；不可用時回退 CPU。
+- `pianotrans.py` 會優先使用 Apple GPU / MPS；不可用時回退 CPU。
 - BPM 修正以固定 BPM 為前提，不建立 tempo map。
 - 規則清理是低風險 preprocessing；後續更複雜的判斷應放在 feature extraction 或 ML classifier 等更高階流程中。
