@@ -54,7 +54,7 @@ pitch < 60  -> Left
 pitch >= 60 -> Right
 ```
 
-If multiple tempo or time signature events are found, still generate the Markdown, but record the event counts in `Global Info`.
+If multiple tempo or time signature events are found, still generate the Markdown using the active event at each note start.
 
 ## Thresholds
 
@@ -74,7 +74,6 @@ WEAK_VELOCITY = 35
 LOW_REGISTER_MAX_PITCH = 40
 HIGH_REGISTER_MIN_PITCH = 88
 DENSE_GROUP_NOTE_COUNT = 6
-NEARBY_MAX_INTERVAL_CANDIDATE = 24
 END_OVERLAP_SECONDS = 0.03
 SAME_PITCH_OVERLAP_SECONDS = 0.0
 ```
@@ -90,20 +89,7 @@ These values are intentionally conservative and can be tuned later.
 
 ...
 
-## Flag Vocabulary
-
-...
-
-## Bar Summaries
-
-...
-
 ## Notes
-
-...
-
-## Candidate Notes
-
 ...
 ```
 
@@ -114,15 +100,10 @@ Include:
 - source filename
 - BPM
 - time signature
-- ticks per beat
-- tempo event count
-- time signature event count
 - total bars
 - total notes
 - left note count
 - right note count
-- suspicious note count
-- channel mapping
 
 Example:
 
@@ -130,18 +111,13 @@ Example:
 - Source filename: song_bpmfix_cleaned.mid
 - BPM: 106.00
 - Time signature: 4/4
-- Ticks per beat: 384
-- Tempo event count: 1
-- Time signature event count: 1
 - Total bars: 89
 - Total notes: 3219
 - Left note count: 960
 - Right note count: 2259
-- Suspicious note count: 184
-- Channel mapping: MIDI channel 1 = Right, MIDI channel 3 = Left
 ```
 
-## Flag Vocabulary
+## Flags
 
 Use only these fixed flags:
 
@@ -154,10 +130,11 @@ weak
 high_register
 low_register
 dense
-isolated
 same_pitch_overlap
 end_overlap
 ```
+
+Do not mark `isolated` notes in the first compact version. That flag creates too much noise for a score-like review file.
 
 Do not include higher-level musical judgment flags in the first version.
 
@@ -169,22 +146,6 @@ melodic_break
 large_hand_span
 possible_pedal_tail
 ```
-
-## Bar Summaries
-
-One row per bar:
-
-```markdown
-| Bar | LeftRange | LeftNotes | RightRange | RightNotes | SuspiciousNotes |
-| --- | --- | ---: | --- | ---: | ---: |
-| 1 | C2-G3 | 12 | C4-E6 | 28 | 3 |
-```
-
-Definitions:
-
-- `LeftRange`: min-max pitch name for notes assigned to Left in the bar, or `-`.
-- `RightRange`: min-max pitch name for notes assigned to Right in the bar, or `-`.
-- `SuspiciousNotes`: note count in the bar where flags are not `normal`.
 
 ## Notes Table
 
@@ -255,51 +216,6 @@ Purpose:
 
 - Detect short-time same-hand extreme jumps as factual data.
 - Do not add musical judgment flags such as `melodic_break`.
-- Candidate selection may use `NearbyMaxInterval >= 24`.
-
-## Candidate Notes
-
-List all notes that may deserve human or model attention.
-
-Candidate conditions:
-
-- `Flags != normal`
-- or `velocity` is very low / weak
-- or `duration` is very short / short
-- or `NearbyMaxInterval >= NEARBY_MAX_INTERVAL_CANDIDATE`
-
-Each candidate should include:
-
-- ID
-- Position
-- Hand
-- Pitch
-- Velocity
-- Duration_ms
-- Duration_beats
-- ChordGroup
-- NearbyMaxInterval
-- Flags
-- Facts
-
-Candidate Markdown shape:
-
-```markdown
-### Note 128
-
-- Position: Bar 18 Beat 3.5
-- Hand: Right
-- Pitch: F7
-- Velocity: 18
-- Duration_ms: 42
-- Duration_beats: 0.07
-- ChordGroup: 93
-- NearbyMaxInterval: 27
-- Flags: weak,short
-- Facts: Short weak right-hand note; nearby same-hand maximum interval is 27 semitones.
-```
-
-Facts must be short English factual descriptions. Avoid judgmental language such as "wrong", "bad", or "should be removed".
 
 ## Implementation Notes
 

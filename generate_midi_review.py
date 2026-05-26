@@ -18,7 +18,6 @@ WEAK_VELOCITY = 35
 LOW_REGISTER_MAX_PITCH = 40
 HIGH_REGISTER_MIN_PITCH = 88
 DENSE_GROUP_NOTE_COUNT = 6
-NEARBY_MAX_INTERVAL_CANDIDATE = 24
 END_OVERLAP_SECONDS = 0.03
 SAME_PITCH_OVERLAP_SECONDS = 0.0
 
@@ -28,19 +27,6 @@ DEFAULT_TEMPO = 500000
 DEFAULT_TIME_SIGNATURE = (4, 4)
 
 NOTE_NAMES_SHARP = ('C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B')
-FLAG_VOCABULARY = [
-    'normal',
-    'very_short',
-    'short',
-    'very_weak',
-    'weak',
-    'high_register',
-    'low_register',
-    'dense',
-    'isolated',
-    'same_pitch_overlap',
-    'end_overlap',
-]
 
 
 def pitch_name(note_number):
@@ -139,12 +125,6 @@ def position_text(ticks, ticks_per_beat, time_signatures):
     ticks_in_bar = ticks - int((bar_index - 1) * bar_ticks)
     beat = ticks_in_bar / beat_ticks + 1
     return 'Bar {} Beat {:.1f}'.format(bar_index, beat)
-
-
-def bar_number(ticks, ticks_per_beat, time_signatures):
-    numerator, denominator = time_signature_at_tick(ticks, time_signatures)
-    bar_ticks = bar_length_ticks(ticks_per_beat, numerator, denominator)
-    return int(ticks // bar_ticks) + 1
 
 
 def collect_notes(midi_file, tempo_changes):
@@ -269,8 +249,6 @@ def flags_for_note(note, group_sizes):
         flags.append('low_register')
     if group_sizes[note['chord_group']] >= DENSE_GROUP_NOTE_COUNT:
         flags.append('dense')
-    if note['nearby_max_interval'] == -1:
-        flags.append('isolated')
     if note['same_pitch_overlap']:
         flags.append('same_pitch_overlap')
     if note['end_overlap']:
@@ -335,61 +313,13 @@ def start_ticks(notes):
     return min(note['start_ticks'] for note in notes)
 
 
-def note_range_text(notes):
-    if not notes:
-        return '-'
-    pitches = [note['pitch'] for note in notes]
-    return '{}-{}'.format(pitch_name(min(pitches)), pitch_name(max(pitches)))
-
-
 def format_flags(flags):
     return ','.join(flags)
 
 
-def is_suspicious(note):
-    if note['flags'] != ['normal']:
-        return True
-    if note['velocity'] < WEAK_VELOCITY:
-        return True
-    if note['duration_seconds'] < SHORT_SECONDS:
-        return True
-    if note['nearby_max_interval'] >= NEARBY_MAX_INTERVAL_CANDIDATE:
-        return True
-    return False
-
-
-def facts_for_candidate(note):
-    facts = []
-    if note['duration_seconds'] < SHORT_SECONDS:
-        facts.append('duration is {} ms'.format(duration_ms(note)))
-    if note['velocity'] < WEAK_VELOCITY:
-        facts.append('velocity is {}'.format(note['velocity']))
-    if note['nearby_max_interval'] >= NEARBY_MAX_INTERVAL_CANDIDATE:
-        facts.append('nearby same-hand maximum interval is {} semitones'.format(note['nearby_max_interval']))
-    if 'high_register' in note['flags']:
-        facts.append('note is in high register')
-    if 'low_register' in note['flags']:
-        facts.append('note is in low register')
-    if 'dense' in note['flags']:
-        facts.append('note belongs to a dense chord group')
-    if 'isolated' in note['flags']:
-        facts.append('no nearby same-hand note within {:.2f} seconds'.format(NEARBY_INTERVAL_WINDOW_SECONDS))
-    if 'same_pitch_overlap' in note['flags']:
-        facts.append('same-pitch overlap is present')
-    if 'end_overlap' in note['flags']:
-        facts.append('short end overlap is present')
-    if not facts:
-        facts.append('candidate selected by fixed thresholds')
-    return '; '.join(facts) + '.'
-
-
-def markdown_escape(value):
-    return str(value).replace('|', '\\|')
-
-
 def build_review(midi_path):
     midi_file = mido.MidiFile(midi_path)
-    tempo_changes, tempo_events = collect_tempo_changes(midi_file)
+    tempo_changes, _tempo_events = collect_tempo_changes(midi_file)
     time_signatures = collect_time_signatures(midi_file)
     notes = collect_notes(midi_file, tempo_changes)
     assign_chord_groups(notes)
@@ -399,7 +329,6 @@ def build_review(midi_path):
 
     left_notes = [note for note in notes if note['hand'] == 'Left']
     right_notes = [note for note in notes if note['hand'] == 'Right']
-    suspicious_notes = [note for note in notes if is_suspicious(note)]
     numerator, denominator = time_signature_at_tick(0, time_signatures)
 
     lines = ['# MIDI Review Data', '']
@@ -409,47 +338,12 @@ def build_review(midi_path):
         '- Source filename: {}'.format(os.path.basename(midi_path)),
         '- BPM: {:.2f}'.format(primary_bpm(tempo_changes, start_ticks(notes), end_ticks(notes))),
         '- Time signature: {}/{}'.format(numerator, denominator),
-        '- Ticks per beat: {}'.format(midi_file.ticks_per_beat),
-        '- Tempo event count: {}'.format(len(tempo_events)),
-        '- Time signature event count: {}'.format(len(time_signatures)),
         '- Total bars: {}'.format(total_bars(notes, midi_file.ticks_per_beat, time_signatures)),
         '- Total notes: {}'.format(len(notes)),
         '- Left note count: {}'.format(len(left_notes)),
         '- Right note count: {}'.format(len(right_notes)),
-        '- Suspicious note count: {}'.format(len(suspicious_notes)),
-        '- Channel mapping: MIDI channel 1 = Right, MIDI channel 3 = Left',
         '',
     ])
-
-    lines.extend(['## Flag Vocabulary', ''])
-    for flag in FLAG_VOCABULARY:
-        lines.append('- {}'.format(flag))
-    lines.append('')
-
-    bars = defaultdict(list)
-    for note in notes:
-        bars[bar_number(note['start_ticks'], midi_file.ticks_per_beat, time_signatures)].append(note)
-
-    lines.extend([
-        '## Bar Summaries',
-        '',
-        '| Bar | LeftRange | LeftNotes | RightRange | RightNotes | SuspiciousNotes |',
-        '| ---: | --- | ---: | --- | ---: | ---: |',
-    ])
-    for bar in range(1, total_bars(notes, midi_file.ticks_per_beat, time_signatures) + 1):
-        bar_notes = bars.get(bar, [])
-        bar_left = [note for note in bar_notes if note['hand'] == 'Left']
-        bar_right = [note for note in bar_notes if note['hand'] == 'Right']
-        bar_suspicious = [note for note in bar_notes if is_suspicious(note)]
-        lines.append('| {} | {} | {} | {} | {} | {} |'.format(
-            bar,
-            note_range_text(bar_left),
-            len(bar_left),
-            note_range_text(bar_right),
-            len(bar_right),
-            len(bar_suspicious),
-        ))
-    lines.append('')
 
     lines.extend([
         '## Notes',
@@ -472,27 +366,6 @@ def build_review(midi_path):
             format_flags(note['flags']),
         ))
     lines.append('')
-
-    lines.extend(['## Candidate Notes', ''])
-    if not suspicious_notes:
-        lines.append('No candidate notes.')
-    else:
-        for note in suspicious_notes:
-            lines.extend([
-                '### Note {}'.format(note['id']),
-                '',
-                '- Position: {}'.format(position_text(note['start_ticks'], midi_file.ticks_per_beat, time_signatures)),
-                '- Hand: {}'.format(note['hand']),
-                '- Pitch: {}'.format(pitch_name(note['pitch'])),
-                '- Velocity: {}'.format(note['velocity']),
-                '- Duration_ms: {}'.format(duration_ms(note)),
-                '- Duration_beats: {:.2f}'.format(duration_beats(note, midi_file.ticks_per_beat)),
-                '- ChordGroup: {}'.format(note['chord_group']),
-                '- NearbyMaxInterval: {}'.format(note['nearby_max_interval']),
-                '- Flags: {}'.format(format_flags(note['flags'])),
-                '- Facts: {}'.format(markdown_escape(facts_for_candidate(note))),
-                '',
-            ])
 
     return '\n'.join(lines).rstrip() + '\n'
 

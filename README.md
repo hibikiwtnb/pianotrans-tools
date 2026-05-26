@@ -138,10 +138,7 @@ midi_review.md
 
 ```text
 Global Info
-Flag Vocabulary
-Bar Summaries
 Notes
-Candidate Notes
 ```
 
 詳細規格見：
