@@ -1,10 +1,7 @@
 # Pianotrans Run Tools
-
-一句話：為 Pianotrans 補上一個可自動選擇 MPS / CUDA / CPU 的外殼；在 Apple Silicon 上優先使用 Apple GPU / MPS，其他環境仍可依序回退到 CUDA 或 CPU，並整合 BPM 修正、MIDI 清理、左右手 channel 標記與 review 輸出。
-
 [English README](README_EN.md)
 
-這個目錄包含可自動選擇推理設備的 Pianotrans 轉錄入口，以及圍繞轉錄結果新增的 BPM 修正、MIDI 統計、保守規則清理、初步分手 / MIDI channel 標記、MIDI review 匯出工具。所有 `.command` 檔都可以直接雙擊執行。
+這個目錄包含增加了 Apple GPU / MPS 支持的 Pianotrans 轉錄入口，以及圍繞轉錄結果新增的 BPM 修正、MIDI 統計、保守規則清理、初步分手 / MIDI channel 標記、MIDI review 匯出工具。所有 `.command` 檔都可以直接雙擊執行。
 
 ## Main Pipeline
 
