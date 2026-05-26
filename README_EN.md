@@ -1,8 +1,10 @@
 # Pianotrans Run Tools
 
+One-line summary: a device-aware Pianotrans launcher that tries MPS / CUDA / CPU in order, enabling Apple Silicon machines to run inference first on Apple GPU / MPS while keeping CUDA and CPU fallback paths, with integrated BPM fixing, MIDI cleanup, hand-channel marking, and review export.
+
 [Chinese README](README.md)
 
-This folder contains the main Pianotrans transcription entrypoint and the post-processing tools added around its MIDI output: BPM fixing, MIDI statistics, conservative rule-based MIDI cleanup, provisional hand-splitting by MIDI channel, and compact MIDI review export. All `.command` files are intended to be double-clickable on macOS.
+This folder contains a device-aware Pianotrans transcription entrypoint and the post-processing tools added around its MIDI output: BPM fixing, MIDI statistics, conservative rule-based MIDI cleanup, provisional hand-splitting by MIDI channel, and compact MIDI review export. All `.command` files are intended to be double-clickable on macOS.
 
 ## Main Pipeline
 
@@ -227,6 +229,6 @@ PIANOTRANS_BPM_PYTHON
 
 ## Notes
 
-- `pianotrans.py` tries Apple GPU / MPS first, then CUDA, then CPU.
+- `pianotrans.py` tries MPS, then CUDA, then CPU; on Apple Silicon with PyTorch MPS available, it uses Apple GPU.
 - BPM fixing assumes a fixed BPM and does not build a tempo map.
 - Rule cleanup is conservative preprocessing. More complex decisions should be handled by later feature extraction or ML/classifier workflows.
