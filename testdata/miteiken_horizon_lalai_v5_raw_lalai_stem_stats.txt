@@ -1,0 +1,41 @@
+MIDI quality stats
+MIDI: /Users/keinan/Music/midi/miteiken_horizon_lalai_v5_raw_lalai_stem.mid
+Total notes: 4398
+Very short notes (< 0.050s): 165 (3.75%)
+Low velocity notes (<= 30): 20 (0.45%)
+Lowest note: 24 (C1)
+Highest note: 101 (F7)
+Pitch span: 77 semitone(s)
+Average velocity: 69.93
+Max polyphony: 15
+
+
+MIDI rule cleaning stats
+Input: /Users/keinan/Music/midi/miteiken_horizon_lalai_v5_raw_lalai_stem_bpmfix.mid
+Output: /Users/keinan/Music/midi/miteiken_horizon_lalai_v5_raw_lalai_stem_bpmfix_cleaned.mid
+Original notes: 4398
+Removed notes: 124 (2.82%)
+Kept notes: 4274 (97.18%)
+Rule removals:
+- Duration < 0.030s: 121 (2.75%)
+- Velocity < 20: 1 (0.02%)
+- Velocity < 35 and duration < 0.080s: 2 (0.05%)
+- Pitch outside 21-108: 0 (0.00%)
+
+
+MIDI provisional hand split stats
+MIDI: /Users/keinan/Music/midi/miteiken_horizon_lalai_v5_raw_lalai_stem_bpmfix_cleaned.mid
+Original notes: 4274
+Channel 1 / right hand notes: 2676 (62.61%)
+Channel 3 / left hand notes: 1598 (37.39%)
+Rule assignments:
+- pitch <= 52: 826 (19.33%)
+- pitch >= 67: 1799 (42.09%)
+- group relative lower note: 575 (13.45%)
+- group relative higher note: 575 (13.45%)
+- closer to previous left hand pitch: 188 (4.40%)
+- closer to previous right hand pitch: 146 (3.42%)
+- fallback pitch < 60: 43 (1.01%)
+- fallback pitch >= 60: 122 (2.85%)
+Span exceeded groups: 166
+Span reassignments: 174

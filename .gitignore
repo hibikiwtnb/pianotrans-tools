@@ -1,0 +1,11 @@
+.DS_Store
+__pycache__/
+.venv/
+*.pyc
+piano_transcription_inference/
+piano_transcription_inference_data/
+*.wav
+*.aif
+*.aiff
+*.mp3
+*.flac

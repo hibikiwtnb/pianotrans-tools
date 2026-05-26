@@ -1,0 +1,139 @@
+import json
+import os
+import subprocess
+
+import mido
+
+
+BPM_PYTHON = '/Users/keinan/.local/share/pianotrans-bpm-env/bin/python3'
+ORIGINAL_BPM = 120.0
+
+
+def bpmfix_path_for(midi_path):
+    filename, ext = os.path.splitext(midi_path)
+    return filename + '_bpmfix' + ext
+
+
+def bpmfix_report_path_for(midi_path):
+    filename, _ = os.path.splitext(midi_path)
+    return filename + '_stats.txt'
+
+
+def detect_bpm(audio_path):
+    if not os.path.exists(BPM_PYTHON):
+        raise RuntimeError('BPM environment not found: {}'.format(BPM_PYTHON))
+
+    code = r'''
+import json
+import sys
+import essentia.standard as es
+
+audio_path = sys.argv[1]
+audio = es.MonoLoader(filename=audio_path, sampleRate=44100)()
+extractor = es.RhythmExtractor2013(method='multifeature')
+bpm, beats, confidence, estimates, bpm_intervals = extractor(audio)
+print(json.dumps({
+    'bpm': round(float(bpm)),
+    'raw_bpm': float(bpm),
+    'confidence': float(confidence),
+    'beats': len(beats),
+}))
+'''
+    result = subprocess.run(
+        [BPM_PYTHON, '-c', code, audio_path],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return json.loads(result.stdout)
+
+
+def bpm_info_from_manual_bpm(bpm):
+    bpm = float(bpm)
+    return {
+        'bpm': round(bpm, 2),
+        'raw_bpm': None,
+        'confidence': None,
+        'beats': None,
+        'source': 'manual',
+    }
+
+
+def fix_midi_bpm(midi_path, output_path, target_bpm):
+    midi_file = mido.MidiFile(midi_path)
+    scale = target_bpm / ORIGINAL_BPM
+    target_tempo = mido.bpm2tempo(target_bpm)
+
+    for track in midi_file.tracks:
+        for message in track:
+            message.time = int(round(message.time * scale))
+            if message.type == 'set_tempo':
+                message.tempo = target_tempo
+
+    midi_file.save(output_path)
+
+
+def format_bpmfix_stats(audio_path, midi_path, output_path, bpm_info):
+    confidence = bpm_info.get('confidence')
+    beats = bpm_info.get('beats')
+    source = bpm_info.get('source', 'detected')
+    raw_bpm = bpm_info.get('raw_bpm')
+
+    return '\n'.join([
+        'MIDI BPMFix stats',
+        'Audio: {}'.format(audio_path or 'N/A'),
+        'Input MIDI: {}'.format(midi_path),
+        'Output MIDI: {}'.format(output_path),
+        'Original BPM: {:.2f}'.format(ORIGINAL_BPM),
+        'BPM source: {}'.format(source),
+        'Raw detected BPM: {}'.format('N/A' if raw_bpm is None else '{:.6f}'.format(raw_bpm)),
+        'Applied BPM: {bpm:.2f}'.format(**bpm_info),
+        'Detection confidence: {}'.format('N/A (manual BPM)' if confidence is None else '{:.3f}'.format(confidence)),
+        'Detected beats: {}'.format('N/A (manual BPM)' if beats is None else beats),
+    ])
+
+
+def write_bpmfix_report(audio_path, midi_path, output_path, bpm_info, report_path=None, append=False):
+    if report_path is None:
+        report_path = bpmfix_report_path_for(midi_path)
+
+    report = format_bpmfix_stats(audio_path, midi_path, output_path, bpm_info)
+    mode = 'a' if append else 'w'
+    with open(report_path, mode, encoding='utf-8') as file:
+        if append:
+            file.write('\n\n')
+        file.write(report)
+        file.write('\n')
+
+    print(report)
+    if append:
+        print('Appending BPMFix report: {}'.format(report_path))
+    else:
+        print('Writing BPMFix report: {}'.format(report_path))
+    return report_path
+
+
+def apply_bpm_fix(audio_path, midi_path, report_path=None, append_report=False, target_bpm=None):
+    output_path = bpmfix_path_for(midi_path)
+    if target_bpm is None:
+        print('Detecting BPM for {}'.format(audio_path))
+        bpm_info = detect_bpm(audio_path)
+        bpm_info['source'] = 'detected'
+    else:
+        bpm_info = bpm_info_from_manual_bpm(target_bpm)
+
+    target_bpm = bpm_info['bpm']
+    print(
+        'Using BPM: {bpm:.2f} (source: {source})'.format(**bpm_info)
+    )
+    print('Writing BPM-fixed MIDI: {}'.format(output_path))
+    fix_midi_bpm(midi_path, output_path, target_bpm)
+    write_bpmfix_report(
+        audio_path,
+        midi_path,
+        output_path,
+        bpm_info,
+        report_path=report_path,
+        append=append_report,
+    )
+    return output_path, bpm_info

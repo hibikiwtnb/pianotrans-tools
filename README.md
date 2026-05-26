@@ -1,0 +1,202 @@
+# Pianotrans Run Tools
+
+這個目錄包含 Pianotrans 轉錄入口，以及圍繞轉錄結果新增的 BPM 修正、MIDI 統計、保守規則清理工具。所有 `.command` 檔都可以直接雙擊執行。
+
+## Main Pipeline
+
+### `transCPU.command`
+
+完整轉錄流程入口。雙擊後選擇單個音訊檔或資料夾批量處理。
+
+流程：
+
+```text
+Pianotrans inference
+-> write original MIDI
+-> write MIDI stats
+-> detect BPM from source audio
+-> write BPM-fixed MIDI
+-> rule-based conservative cleanup
+```
+
+輸出檔案：
+
+```text
+song.mid
+song_stats.txt
+song_bpmfix.mid
+song_bpmfix_cleaned.mid
+```
+
+`song_stats.txt` 會包含原始 MIDI 品質統計，以及 BPM-fixed MIDI 清理後追加的 cleaning stats。
+
+如果 `song.mid` 已存在，流程不會重新轉錄；只會補缺失的 stats、BPM-fixed MIDI、cleaned MIDI。
+
+## Standalone Tools
+
+### `bpmfix.command`
+
+只做 BPM 偵測和 MIDI BPM 修正。
+
+使用方式：
+
+1. 如果已知 BPM，在終端輸入 BPM。
+2. 如果不知道 BPM，直接按 Return，然後選擇原音訊檔讓 Essentia 偵測固定 BPM。
+3. 選擇要修正的 MIDI。
+4. 輸出 `*_bpmfix.mid`。
+
+自動偵測結果會記錄取整前 BPM，並把套用 BPM 四捨五入成整數；手動輸入的 BPM 會直接使用。
+
+修正邏輯保留實際播放速度，只重算 MIDI ticks 和 tempo metadata：
+
+```text
+new_ticks = old_ticks * detected_bpm / 120
+```
+
+### `midi_stats.command`
+
+只做 MIDI 品質統計。
+
+使用方式：
+
+1. 選擇 MIDI。
+2. 輸出 `*_stats.txt`。
+
+統計項目：
+
+```text
+Total notes
+Very short notes (< 0.050s)
+Low velocity notes (<= 30)
+Lowest note
+Highest note
+Pitch span
+Average velocity
+Max polyphony
+```
+
+音高會同時輸出 MIDI note number 和英文音名，例如 `24 (C1)`。
+
+### `clean_midi_rules.command`
+
+只做第一階段保守規則清理。
+
+使用方式：
+
+1. 選擇 MIDI。
+2. 輸出 `*_cleaned.mid`。
+3. 輸出 `*_clean_report.txt`。
+
+注意：獨立執行 `clean_midi_rules.command` 時會輸出 `*_clean_report.txt`；完整 `transCPU.command` pipeline 中，清理報告會追加寫入原本的 `song_stats.txt`。
+
+清理規則只刪除高度疑似 artifact 的 note，不做音樂語義判斷、不分手、不量化、不判斷和弦/調性/旋律。
+
+目前規則：
+
+```text
+duration < 0.03s
+velocity < 20
+velocity < 35 and duration < 0.08s
+pitch outside 21-108
+```
+
+清理報告示例：
+
+```text
+MIDI rule cleaning stats
+Input: song_bpmfix.mid
+Output: song_bpmfix_cleaned.mid
+Original notes: 1000
+Removed notes: 35 (3.50%)
+Kept notes: 965 (96.50%)
+Rule removals:
+- Duration < 0.030s: 12 (1.20%)
+- Velocity < 20: 3 (0.30%)
+- Velocity < 35 and duration < 0.080s: 18 (1.80%)
+- Pitch outside 21-108: 2 (0.20%)
+```
+
+所有百分比都以 `Original notes` 為分母。
+
+### `generate_midi_review.py`
+
+只讀取已完成後處理的 MIDI，輸出英文 Markdown 格式的 score facts table。它不修改 MIDI。
+
+命令：
+
+```bash
+python generate_midi_review.py input.mid
+```
+
+預設輸出：
+
+```text
+midi_review.md
+```
+
+目前輸出結構：
+
+```text
+Global Info
+Flag Vocabulary
+Bar Summaries
+Notes
+Candidate Notes
+```
+
+詳細規格見：
+
+```text
+MIDI_REVIEW_SPEC.md
+```
+
+## Python Entrypoints
+
+這些 `.command` 背後呼叫的 Python 腳本：
+
+```text
+transCPU.py
+bpmfix.py
+midi_stats_command.py
+clean_midi_rules.py
+generate_midi_review.py
+```
+
+共用 helper：
+
+```text
+bpmfix_utils.py
+midi_stats.py
+```
+
+## Dependencies
+
+Pianotrans 自己的 Python 環境：
+
+```text
+/Users/keinan/Music/Pianotrans/Run/.venv
+```
+
+Essentia BPM 偵測專用環境：
+
+```text
+/Users/keinan/.local/share/pianotrans-bpm-env
+```
+
+全域 ffmpeg：
+
+```text
+/Users/keinan/.local/bin/ffmpeg
+```
+
+模型權重預設位置：
+
+```text
+/Users/keinan/piano_transcription_inference_data/note_F1=0.9677_pedal_F1=0.9186.pth
+```
+
+## Notes
+
+- `transCPU.py` 會優先使用 Apple GPU / MPS；不可用時回退 CPU。
+- BPM 修正以固定 BPM 為前提，不建立 tempo map。
+- 規則清理是低風險 preprocessing；後續更複雜的判斷應放在 feature extraction 或 ML classifier 等更高階流程中。
