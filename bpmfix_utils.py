@@ -1,11 +1,16 @@
 import json
 import os
 import subprocess
+from pathlib import Path
 
 import mido
 
 
-BPM_PYTHON = '/Users/keinan/.local/share/pianotrans-bpm-env/bin/python3'
+DEFAULT_BPM_ENV = Path.home() / '.local' / 'share' / 'pianotrans-bpm-env'
+BPM_PYTHON = os.environ.get(
+    'PIANOTRANS_BPM_PYTHON',
+    str(Path(os.environ.get('PIANOTRANS_BPM_ENV', DEFAULT_BPM_ENV)).expanduser() / 'bin' / 'python3'),
+)
 ORIGINAL_BPM = 120.0
 
 

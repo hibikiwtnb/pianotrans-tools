@@ -1,5 +1,5 @@
 MIDI quality stats
-MIDI: /Users/keinan/Music/midi/miteiken_horizon_lalai_v5_raw_lalai_stem.mid
+MIDI: testdata/miteiken_horizon_lalai_v5_raw_lalai_stem.mid
 Total notes: 4398
 Very short notes (< 0.050s): 165 (3.75%)
 Low velocity notes (<= 30): 20 (0.45%)
@@ -11,8 +11,8 @@ Max polyphony: 15
 
 
 MIDI rule cleaning stats
-Input: /Users/keinan/Music/midi/miteiken_horizon_lalai_v5_raw_lalai_stem_bpmfix.mid
-Output: /Users/keinan/Music/midi/miteiken_horizon_lalai_v5_raw_lalai_stem_bpmfix_cleaned.mid
+Input: testdata/miteiken_horizon_lalai_v5_raw_lalai_stem_bpmfix.mid
+Output: testdata/miteiken_horizon_lalai_v5_raw_lalai_stem_bpmfix_cleaned.mid
 Original notes: 4398
 Removed notes: 124 (2.82%)
 Kept notes: 4274 (97.18%)
@@ -24,7 +24,7 @@ Rule removals:
 
 
 MIDI provisional hand split stats
-MIDI: /Users/keinan/Music/midi/miteiken_horizon_lalai_v5_raw_lalai_stem_bpmfix_cleaned.mid
+MIDI: testdata/miteiken_horizon_lalai_v5_raw_lalai_stem_bpmfix_cleaned.mid
 Original notes: 4274
 Channel 1 / right hand notes: 2676 (62.61%)
 Channel 3 / left hand notes: 1598 (37.39%)

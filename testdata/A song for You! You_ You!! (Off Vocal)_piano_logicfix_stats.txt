@@ -1,5 +1,5 @@
 MIDI quality stats
-MIDI: /Users/keinan/Music/midi/A song for You! You_ You!! (Off Vocal)_piano_logicfix.mid
+MIDI: testdata/A song for You! You_ You!! (Off Vocal)_piano_logicfix.mid
 Total notes: 3440
 Very short notes (< 0.050s): 327 (9.51%)
 Low velocity notes (<= 30): 90 (2.62%)
@@ -11,8 +11,8 @@ Max polyphony: 13
 
 
 MIDI rule cleaning stats
-Input: /Users/keinan/Music/midi/A song for You! You_ You!! (Off Vocal)_piano_logicfix.mid
-Output: /Users/keinan/Music/midi/A song for You! You_ You!! (Off Vocal)_piano_logicfix_cleaned.mid
+Input: testdata/A song for You! You_ You!! (Off Vocal)_piano_logicfix.mid
+Output: testdata/A song for You! You_ You!! (Off Vocal)_piano_logicfix_cleaned.mid
 Original notes: 3440
 Removed notes: 206 (5.99%)
 Kept notes: 3234 (94.01%)
@@ -24,7 +24,7 @@ Rule removals:
 
 
 MIDI provisional hand split stats
-MIDI: /Users/keinan/Music/midi/A song for You! You_ You!! (Off Vocal)_piano_logicfix_cleaned.mid
+MIDI: testdata/A song for You! You_ You!! (Off Vocal)_piano_logicfix_cleaned.mid
 Original notes: 3234
 Channel 1 / right hand notes: 2270 (70.19%)
 Channel 3 / left hand notes: 964 (29.81%)

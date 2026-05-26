@@ -174,25 +174,32 @@ midi_stats.py
 Pianotrans 自己的 Python 環境：
 
 ```text
-/Users/keinan/Music/Pianotrans/Run/.venv
+./.venv
 ```
 
 Essentia BPM 偵測專用環境：
 
 ```text
-/Users/keinan/.local/share/pianotrans-bpm-env
+$HOME/.local/share/pianotrans-bpm-env
 ```
 
 全域 ffmpeg：
 
 ```text
-/Users/keinan/.local/bin/ffmpeg
+$HOME/.local/bin/ffmpeg
 ```
 
 模型權重預設位置：
 
 ```text
-/Users/keinan/piano_transcription_inference_data/note_F1=0.9677_pedal_F1=0.9186.pth
+$HOME/piano_transcription_inference_data/note_F1=0.9677_pedal_F1=0.9186.pth
+```
+
+可覆蓋的環境變數：
+
+```text
+PIANOTRANS_BPM_ENV
+PIANOTRANS_BPM_PYTHON
 ```
 
 ## Notes
