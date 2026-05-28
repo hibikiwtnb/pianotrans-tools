@@ -187,6 +187,37 @@ Notes
 MIDI_REVIEW_SPEC.md
 ```
 
+### `generate_chord_review.command`
+
+只讀取已完成後處理的 MIDI，輸出英文 Markdown 格式的 vertical chord chart。它不修改 MIDI。
+
+命令：
+
+```bash
+python generate_chord_review.py input.mid
+```
+
+預設輸出：
+
+```text
+song_chord_review.md
+```
+
+表格欄位：
+
+```text
+Bar
+Beat
+Chord
+Bass
+LH
+RH
+Range
+NoteCount
+```
+
+每小節固定 4 行；如果同一拍內有多個起音事件，`Beat` 和 `Chord` 會用 `;` 分隔。和弦推定使用 vendored Tonal.js，邏輯對齊 pianometer 的 `Tonal.Chord.detect(notes, { assumePerfectFifth: true })`，每個事件最多保留前 3 個候補；無法推定時寫 `-`。
+
 ## Python Entrypoints
 
 這些 `.command` 背後呼叫的 Python 腳本：
@@ -199,6 +230,7 @@ midi_stats_command.py
 clean_midi_rules.py
 hand_split_channels.py
 generate_midi_review.py
+generate_chord_review.py
 ```
 
 共用 helper：
@@ -206,6 +238,7 @@ generate_midi_review.py
 ```text
 bpmfix_utils.py
 midi_stats.py
+detect_chords_tonal.js
 ```
 
 ## Dependencies
@@ -226,6 +259,14 @@ $HOME/.local/share/pianotrans-bpm-env
 
 ```text
 $HOME/.local/bin/ffmpeg
+```
+
+Tonal.js chord detection requires Node.js. The launcher searches common Node locations and the bundled Codex Node runtime; `PIANOTRANS_NODE` can override it.
+
+Vendored Tonal.js:
+
+```text
+vendor/tonal.min.js
 ```
 
 模型權重預設位置：

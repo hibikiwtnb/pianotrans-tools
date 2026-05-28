@@ -188,6 +188,37 @@ Detailed spec:
 MIDI_REVIEW_SPEC.md
 ```
 
+### `generate_chord_review.command`
+
+Reads a processed MIDI and writes an English Markdown vertical chord chart. It does not modify the MIDI.
+
+Command:
+
+```bash
+python generate_chord_review.py input.mid
+```
+
+Default output:
+
+```text
+song_chord_review.md
+```
+
+Table columns:
+
+```text
+Bar
+Beat
+Chord
+Bass
+LH
+RH
+Range
+NoteCount
+```
+
+Each bar has 4 fixed rows. If multiple onset events appear inside the same beat, `Beat` and `Chord` are separated with `;`. Chord detection uses vendored Tonal.js and follows pianometer's `Tonal.Chord.detect(notes, { assumePerfectFifth: true })`; each event keeps up to the first 3 candidates. Undetected chords are written as `-`.
+
 ## Python Entrypoints
 
 Python scripts used by the `.command` launchers:
@@ -200,6 +231,7 @@ midi_stats_command.py
 clean_midi_rules.py
 hand_split_channels.py
 generate_midi_review.py
+generate_chord_review.py
 ```
 
 Shared helpers:
@@ -207,6 +239,7 @@ Shared helpers:
 ```text
 bpmfix_utils.py
 midi_stats.py
+detect_chords_tonal.js
 ```
 
 ## Dependencies
@@ -227,6 +260,14 @@ Global ffmpeg:
 
 ```text
 $HOME/.local/bin/ffmpeg
+```
+
+Tonal.js chord detection requires Node.js. The launcher searches common Node locations and the bundled Codex Node runtime; `PIANOTRANS_NODE` can override it.
+
+Vendored Tonal.js:
+
+```text
+vendor/tonal.min.js
 ```
 
 Default model checkpoint path:
