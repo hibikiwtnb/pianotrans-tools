@@ -13,7 +13,7 @@ python generate_midi_review.py input.mid
 Default output:
 
 ```text
-midi_review.md
+<input_stem>_midi_review.md
 ```
 
 ## Scope

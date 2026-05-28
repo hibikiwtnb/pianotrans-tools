@@ -172,7 +172,7 @@ python generate_midi_review.py input.mid
 Default output:
 
 ```text
-midi_review.md
+song_midi_review.md
 ```
 
 Current output structure:

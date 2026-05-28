@@ -171,7 +171,7 @@ python generate_midi_review.py input.mid
 預設輸出：
 
 ```text
-midi_review.md
+song_midi_review.md
 ```
 
 目前輸出結構：

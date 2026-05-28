@@ -3,6 +3,7 @@ import math
 import os
 import sys
 from collections import defaultdict
+from pathlib import Path
 
 import mido
 
@@ -370,16 +371,22 @@ def build_review(midi_path):
     return '\n'.join(lines).rstrip() + '\n'
 
 
+def default_output_path(input_midi):
+    midi_path = Path(input_midi)
+    return str(midi_path.with_name('{}_midi_review.md'.format(midi_path.stem)))
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description='Generate MIDI review Markdown data.')
     parser.add_argument('input_midi', help='Input MIDI file.')
-    parser.add_argument('-o', '--output', default='midi_review.md', help='Output Markdown path.')
+    parser.add_argument('-o', '--output', help='Output Markdown path.')
     args = parser.parse_args(argv)
 
     review = build_review(args.input_midi)
-    with open(args.output, 'w', encoding='utf-8') as file:
+    output_path = args.output or default_output_path(args.input_midi)
+    with open(output_path, 'w', encoding='utf-8') as file:
         file.write(review)
-    print('Writing MIDI review: {}'.format(args.output))
+    print('Writing MIDI review: {}'.format(output_path))
     return 0
 
 
