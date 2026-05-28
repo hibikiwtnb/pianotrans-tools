@@ -1,16 +1,22 @@
 # Pianotrans Run Tools
 
-One-line summary: a device-aware Pianotrans launcher that tries MPS / CUDA / CPU in order, enabling Apple Silicon machines to run inference first on Apple GPU / MPS while keeping CUDA and CPU fallback paths, with integrated BPM fixing, MIDI cleanup, hand-channel marking, and review export.
+One-line summary: Pianotrans launchers with integrated BPM fixing, MIDI cleanup, hand-channel marking, and review export. The main launcher uses CUDA / CPU, while an Apple GPU / MPS-capable launcher is kept for testing and comparison.
 
 [Chinese README](README.md)
 
-This folder contains a device-aware Pianotrans transcription entrypoint and the post-processing tools added around its MIDI output: BPM fixing, MIDI statistics, conservative rule-based MIDI cleanup, provisional hand-splitting by MIDI channel, and compact MIDI review export. All `.command` files are intended to be double-clickable on macOS.
+This folder contains Pianotrans transcription entrypoints and the post-processing tools added around their MIDI output: BPM fixing, MIDI statistics, conservative rule-based MIDI cleanup, provisional hand-splitting by MIDI channel, and compact MIDI review export. All `.command` files are intended to be double-clickable on macOS. The main entrypoint uses CUDA / CPU; a separate Apple GPU / MPS-capable entrypoint is kept for testing and comparison.
 
 ## Main Pipeline
 
 ### `pianotrans.command`
 
 Main transcription entrypoint. Double-click it, then choose one or more audio files. MIDI files are written next to the selected audio files.
+
+Device selection order:
+
+```text
+CUDA -> CPU
+```
 
 Pipeline:
 
@@ -36,6 +42,16 @@ song_bpmfix_cleaned.mid
 `song_stats.txt` contains the original MIDI quality stats, BPMFix stats, cleanup stats, and hand-split stats.
 
 If `song.mid` already exists, the pipeline does not run transcription again. It only fills in missing stats, BPM-fixed MIDI, and cleaned MIDI.
+
+### `pianotrans_mps.command`
+
+Preserved Apple GPU / MPS-capable entrypoint. It runs the same pipeline as `pianotrans.command`, but uses this device selection order:
+
+```text
+MPS -> CUDA -> CPU
+```
+
+On the tested M2 MacBook Air, this Pianotrans model was slower on MPS than on CPU, so `pianotrans.command` is the recommended daily entrypoint.
 
 ## Standalone Tools
 
@@ -180,6 +196,7 @@ Python scripts used by the `.command` launchers:
 
 ```text
 pianotrans.py
+pianotrans_mps.py
 bpmfix.py
 midi_stats_command.py
 clean_midi_rules.py
@@ -229,6 +246,7 @@ PIANOTRANS_BPM_PYTHON
 
 ## Notes
 
-- `pianotrans.py` tries MPS, then CUDA, then CPU; on Apple Silicon with PyTorch MPS available, it uses Apple GPU.
+- `pianotrans.py` tries CUDA, then CPU.
+- `pianotrans_mps.py` tries MPS, then CUDA, then CPU; on Apple Silicon with PyTorch MPS available, it uses Apple GPU.
 - BPM fixing assumes a fixed BPM and does not build a tempo map.
 - Rule cleanup is conservative preprocessing. More complex decisions should be handled by later feature extraction or ML/classifier workflows.

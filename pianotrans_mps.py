@@ -16,6 +16,8 @@ AUDIO_EXTENSIONS = {'.flac', '.mp3', '.wav', '.ape', '.m4a', '.aif', '.aiff'}
 
 
 def select_device():
+    if torch.backends.mps.is_available():
+        return torch.device('mps')
     if torch.cuda.is_available():
         return torch.device('cuda')
     return torch.device('cpu')

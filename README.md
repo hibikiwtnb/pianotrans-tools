@@ -1,13 +1,19 @@
 # Pianotrans Run Tools
 [English README](README_EN.md)
 
-這個目錄包含增加了 Apple GPU / MPS 支持的 Pianotrans 轉錄入口，以及圍繞轉錄結果新增的 BPM 修正、MIDI 統計、保守規則清理、初步分手 / MIDI channel 標記、MIDI review 匯出工具。所有 `.command` 檔都可以直接雙擊執行。
+這個目錄包含 Pianotrans 轉錄入口，以及圍繞轉錄結果新增的 BPM 修正、MIDI 統計、保守規則清理、初步分手 / MIDI channel 標記、MIDI review 匯出工具。所有 `.command` 檔都可以直接雙擊執行。主入口使用 CUDA / CPU；另保留 Apple GPU / MPS 支持版入口供測試或對照。
 
 ## Main Pipeline
 
 ### `pianotrans.command`
 
 完整轉錄流程入口。雙擊後直接選擇一個或多個音訊檔；MIDI 會寫在各音訊檔旁邊。
+
+設備選擇順序：
+
+```text
+CUDA -> CPU
+```
 
 流程：
 
@@ -33,6 +39,16 @@ song_bpmfix_cleaned.mid
 `song_stats.txt` 會包含原始 MIDI 品質統計、BPMFix stats、cleaning stats，以及 hand-split stats。
 
 如果 `song.mid` 已存在，流程不會重新轉錄；只會補缺失的 stats、BPM-fixed MIDI、cleaned MIDI。
+
+### `pianotrans_mps.command`
+
+保留的 Apple GPU / MPS 支持版入口，流程與 `pianotrans.command` 相同，但設備選擇順序為：
+
+```text
+MPS -> CUDA -> CPU
+```
+
+目前在 M2 MacBook Air 實測中，這個模型使用 MPS 反而比 CPU 慢，因此日常使用主入口 `pianotrans.command`。
 
 ## Standalone Tools
 
@@ -177,6 +193,7 @@ MIDI_REVIEW_SPEC.md
 
 ```text
 pianotrans.py
+pianotrans_mps.py
 bpmfix.py
 midi_stats_command.py
 clean_midi_rules.py
@@ -226,6 +243,7 @@ PIANOTRANS_BPM_PYTHON
 
 ## Notes
 
-- `pianotrans.py` 會依序嘗試 MPS、CUDA、CPU；在 Apple Silicon 且 PyTorch MPS 可用時會使用 Apple GPU。
+- `pianotrans.py` 會依序嘗試 CUDA、CPU。
+- `pianotrans_mps.py` 會依序嘗試 MPS、CUDA、CPU；在 Apple Silicon 且 PyTorch MPS 可用時會使用 Apple GPU。
 - BPM 修正以固定 BPM 為前提，不建立 tempo map。
 - 規則清理是低風險 preprocessing；後續更複雜的判斷應放在 feature extraction 或 ML classifier 等更高階流程中。
