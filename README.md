@@ -1,7 +1,7 @@
 # Pianotrans Run Tools
 [English README](README_EN.md)
 
-這個目錄包含 Pianotrans 轉錄入口，以及圍繞轉錄結果新增的 BPM 修正、MIDI 統計、保守規則清理、初步分手 / MIDI channel 標記、MIDI review 匯出工具。所有 `.command` 檔都可以直接雙擊執行。主入口使用 CUDA / CPU；另保留 Apple GPU / MPS 支持版入口供測試或對照。
+這個目錄包含增加了 Apple GPU / MPS 支持的 Pianotrans 轉錄入口，以及圍繞轉錄結果新增的 BPM 修正、MIDI 統計、保守規則清理、初步分手 / MIDI channel 標記、MIDI review 匯出工具。所有 `.command` 檔都可以直接雙擊執行。
 
 ## Main Pipeline
 
