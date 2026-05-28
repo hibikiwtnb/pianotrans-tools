@@ -1,10 +1,8 @@
 # Pianotrans Run Tools
 
-One-line summary: Pianotrans launchers with integrated BPM fixing, MIDI cleanup, hand-channel marking, and review export. The main launcher uses CUDA / CPU, while an Apple GPU / MPS-capable launcher is kept for testing and comparison.
-
 [Chinese README](README.md)
 
-This folder contains Pianotrans transcription entrypoints and the post-processing tools added around their MIDI output: BPM fixing, MIDI statistics, conservative rule-based MIDI cleanup, provisional hand-splitting by MIDI channel, and compact MIDI review export. All `.command` files are intended to be double-clickable on macOS. The main entrypoint uses CUDA / CPU; a separate Apple GPU / MPS-capable entrypoint is kept for testing and comparison.
+This folder contains Pianotrans transcription entrypoints with added Apple GPU / MPS support, plus post-processing tools for BPM fixing, MIDI statistics, conservative rule-based cleanup, provisional hand-splitting / MIDI channel marking, and MIDI review export. All `.command` files are intended to be double-clickable.
 
 ## Main Pipeline
 
