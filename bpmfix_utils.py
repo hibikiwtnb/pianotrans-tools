@@ -66,12 +66,19 @@ def bpm_info_from_manual_bpm(bpm):
 
 def fix_midi_bpm(midi_path, output_path, target_bpm):
     midi_file = mido.MidiFile(midi_path)
-    scale = target_bpm / ORIGINAL_BPM
-    target_tempo = mido.bpm2tempo(target_bpm)
+    source_tempo = int(mido.bpm2tempo(ORIGINAL_BPM))
+    target_tempo = int(mido.bpm2tempo(target_bpm))
 
     for track in midi_file.tracks:
+        source_absolute_tick = 0
+        scaled_previous_tick = 0
         for message in track:
-            message.time = int(round(message.time * scale))
+            source_absolute_tick += message.time
+            scaled_absolute_tick = (
+                source_absolute_tick * source_tempo + target_tempo // 2
+            ) // target_tempo
+            message.time = scaled_absolute_tick - scaled_previous_tick
+            scaled_previous_tick = scaled_absolute_tick
             if message.type == 'set_tempo':
                 message.tempo = target_tempo
 
